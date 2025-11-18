@@ -19,15 +19,15 @@ data "aws_ami" "joindevops" {
 }
 
 data "aws_ssm_parameter" "private_subnet_ids" {
-    name = "/${var.project_name}/${var.environment}/private_subnet_ids
+    name = "/${var.project_name}/${var.environment}/private_subnet_ids"
 }
 
 data "aws_ssm_parameter" "vpc_id" {
-    name = "/${var.project_name}/${var.environment}/vpc_id
+    name = "/${var.project_name}/${var.environment}/vpc_id"
 }
 
 data "aws_ssm_parameter" "sg_id" {
-    name = "/${var.project_name}/${var.environment}/${comonent_name}-sg_id
+    name = "/${var.project_name}/${var.environment}/${comonent_name}-sg_id"
 }
 
 data "aws_ssm_parameter" "backend_alb_listener-arn" {
