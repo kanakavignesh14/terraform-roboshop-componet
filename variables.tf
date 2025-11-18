@@ -1,6 +1,6 @@
 variable "component_name" {    # comes from root module
     type = string
-    default = "catalogue"
+   # default = "catalogue"
 
 }
 

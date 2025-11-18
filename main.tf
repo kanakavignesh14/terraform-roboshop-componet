@@ -5,9 +5,9 @@ resource "aws_instance" "main" {
   subnet_id = local.private_subnet_ids # we are creating mongodb in database subnet -> reffering local.tf
   vpc_security_group_ids = [data.aws_ssm_parameter.sg_id.value]  #reffering data.tf
   tags = {
-    Name = "catalogue-ec2"
+    Name = "${var.component_name}"
     Environment = "dev"
-    ec2 = "catalogue_ec2"
+    ec2 =  "${var.component_name}"
 
 
   }
