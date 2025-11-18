@@ -195,7 +195,9 @@ resource "aws_lb_listener_rule" "${var.comonent_name}" {
 
   condition {
     host_header {
-      values = ["local.host_context"]
+      values = [local.host_context]
     }
   }
-}${var.comonent_name}.backend-alb-${var.environment}.${var.domain_name}
+} #${var.comonent_name}.backend-alb-${var.environment}.${var.domain_name}
+
+
