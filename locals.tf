@@ -1,5 +1,5 @@
 locals{
-    component_name = var.comonent_name
+    component_name = var.component_name
     common_name_suffix = "${var.project_name}-${var.environment}"
     ami_id = data.aws_ami.joindevops.id
     private_subnet_ids = split(",",data.aws_ssm_parameter.private_subnet_ids.value)[0]    #["10.0.1.0/24"]

@@ -2,7 +2,7 @@ resource "aws_instance" "main" {
   ami           = local.ami_id
   component_name = local.component_name   # u will get from 90-componet test module as value like "catalogue"
   instance_type = "t3.micro"
-  subnet_id = local.private_subnet_id # we are creating mongodb in database subnet -> reffering local.tf
+  subnet_id = local.private_subnet_ids # we are creating mongodb in database subnet -> reffering local.tf
   vpc_security_group_ids = [data.aws_ssm_parameter.sg_id.value]  #reffering data.tf
   tags = {
     Name = "catalogue-ec2"
