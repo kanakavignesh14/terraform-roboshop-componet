@@ -56,9 +56,9 @@ resource "aws_ami_from_instance" "ami-id-new" {
   source_instance_id = aws_instance.main.id # we are creating new ami from base one
   depends_on = [aws_ec2_instance_state.instance-state]
   tags = {
-    Name = "catalogue-ec2"
+    Name = "${var.component_name}"
     Environment = "dev"
-    ec2 = "catalogue_ec2"
+    ec2 = "${var.component_name}"
 
 
   }
