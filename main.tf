@@ -1,6 +1,6 @@
 resource "aws_instance" "main" {
   ami           = local.ami_id
-  comonent_name = local.comonent_name    # u will get from 90-componet test module as value like "catalogue"
+  component_name = local.component_name"   # u will get from 90-componet test module as value like "catalogue"
   instance_type = "t3.micro"
   subnet_id = local.private_subnet_id # we are creating mongodb in database subnet # reffering local.tf
   vpc_security_group_ids = [data.aws_ssm_parameter.sg_id.value]  #reffering data.tf
@@ -44,17 +44,17 @@ resource "terraform_data" "main1" {
 }
 
 
-resource "aws_ec2_instance_state" "${var.comonent_name}" {
+resource "aws_ec2_instance_state" "instance-state" {
   instance_id = aws_instance.main.id
   state = "stopped"
   depends_on = [terraform_data.main1]
 }
 
 #This Terraform block is creating an "NEW AMI" (Amazon Machine Image) from your running EC2 instance.(catalogue_ec2) which will have os level info and services running in it
-resource "aws_ami_from_instance" "${var.comonent_name}" {
-  name               = "${local.common_name_suffix}-${var.comonent_name}-ami"
+resource "aws_ami_from_instance" "ami-id-new" {
+  name               = "${local.common_name_suffix}-${var.component_name}-ami"
   source_instance_id = aws_instance.main.id # we are creating new ami from base one
-  depends_on = [aws_ec2_instance_state.${var.comonent_name}]
+  depends_on = [aws_ec2_instance_state.instance-state]
   tags = {
     Name = "catalogue-ec2"
     Environment = "dev"
@@ -65,9 +65,9 @@ resource "aws_ami_from_instance" "${var.comonent_name}" {
 }
 
 # launh templates helps Auto scaling group to create instances .
-resource "aws_launch_template" "${var.comonent_name}_launch_template" {
-  name = "${local.common_name_suffix}-${var.comonent_name}"
-  image_id = aws_ami_from_instance.${var.comonent_name}.id   # we giving here new ami id
+resource "aws_launch_template" "instances_launch_template" {
+  name = "${local.common_name_suffix}-${var.component_name}"
+  image_id = aws_ami_from_instance.ami-id-new.id   # we giving here new ami id
 
   instance_initiated_shutdown_behavior = "terminate"
   instance_type = "t3.micro"
@@ -109,8 +109,28 @@ resource "aws_launch_template" "${var.comonent_name}_launch_template" {
 
 }
 
-resource "aws_autoscaling_group" "${var.comonent_name}" {
-  name                      = "${local.common_name_suffix}-${var.comonent_name}-ASG"
+resource "aws_lb_target_group" "respective_target_group" {
+  name     = "${local.common_name_suffix}-${var.component_name}"
+  port     = local.tg_port # accept 
+  protocol = "HTTP"
+  vpc_id   = data.aws_ssm_parameter.vpc_id.value
+
+    health_check {
+    healthy_threshold = 2
+    interval = 10
+    matcher = "200-299"
+    path = "local.health_check_path"
+    port = local.tg_port
+    protocol = "HTTP"
+    timeout = 2
+    unhealthy_threshold = 2
+  }
+}
+
+
+
+resource "aws_autoscaling_group" "ASG" {
+  name                      = "${local.common_name_suffix}-${var.component_name}-ASG"
   max_size                  = 10
   min_size                  = 1
   health_check_grace_period = 100
@@ -119,8 +139,8 @@ resource "aws_autoscaling_group" "${var.comonent_name}" {
   force_delete              = false
   #giving here launch template details to ASG
   launch_template {
-    id      = aws_launch_template.${var.comonent_name}_launch_template.id
-    version = aws_launch_template.${var.comonent_name}_launch_template.latest_version
+    id      = aws_launch_template.instances_launch_template.id
+    version = aws_launch_template.instances_launch_template.latest_version
   }
   #giving here details about which zone and subnet these ec2 need to create
 
@@ -130,7 +150,7 @@ resource "aws_autoscaling_group" "${var.comonent_name}" {
   #After creating send to Target group
   #👉 “Attach this Auto Scaling Group to this Target Group.”
   #arn -> amazon resource name
-  target_group_arns = [aws_lb_target_group.${var.comonent_name}_target_group.arn] #ASG need to send ec2's to this target group where it have list of ec2's
+  target_group_arns = [aws_lb_target_group.respective_target_group.arn] #ASG need to send ec2's to this target group where it have list of ec2's
 
 
 
@@ -152,9 +172,9 @@ resource "aws_autoscaling_group" "${var.comonent_name}" {
 }
 
 
-resource "aws_autoscaling_policy" "${var.comonent_name}" {
-  autoscaling_group_name = aws_autoscaling_group.${var.comonent_name}.name
-  name                   = "${local.common_name_suffix}-${var.comonent_name}"
+resource "aws_autoscaling_policy" "ASG-POLICY" {
+  autoscaling_group_name = aws_autoscaling_group.ASG.name
+  name                   = "${local.common_name_suffix}-${var.component_name}"
   policy_type            = "TargetTrackingScaling"
 
   target_tracking_configuration {
@@ -166,31 +186,15 @@ resource "aws_autoscaling_policy" "${var.comonent_name}" {
   }
 }
 
-resource "aws_lb_target_group" "${var.comonent_name}_target_group" {
-  name     = "${local.common_name_suffix}-${var.comonent_name}"
-  port     = local.tg_port # accept 
-  protocol = "HTTP"
-  vpc_id   = data.aws_ssm_parameter.vpc_id.value
 
-    health_check {
-    healthy_threshold = 2
-    interval = 10
-    matcher = "200-299"
-    path = "local.health_check_path"
-    port = local.tg_port
-    protocol = "HTTP"
-    timeout = 2
-    unhealthy_threshold = 2
-  }
-}
 
-resource "aws_lb_listener_rule" "${var.comonent_name}" {
+resource "aws_lb_listener_rule" "respective_listener" {
   listener_arn = local.listener_arn 
   priority     = var.rule_priority
 
   action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.${var.comonent_name}_target_group.arn
+    target_group_arn = aws_lb_target_group.respective_target_group.arn
   }
 
   condition {

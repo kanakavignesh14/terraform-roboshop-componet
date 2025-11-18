@@ -1,6 +1,6 @@
 variable "component_name" {    # comes from root module
     type = string
-    default = "ec2_instance_name"
+
 }
 
 variable "ami_id" {
