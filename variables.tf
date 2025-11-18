@@ -25,3 +25,7 @@ variable "zone_id" {
 variable "domain_name" {
     default = "vigi-devops.fun"
 }
+
+variable "rule_priority" {
+    type = number
+}
