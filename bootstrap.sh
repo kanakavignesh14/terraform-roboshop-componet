@@ -31,7 +31,7 @@ fi
 if ["$component" == "payment"]; then
     echo "Installing Openssl packages for component :$component"
     dnf update openssl openssl-libs openssh openssh-clients -y
-    dnf install -y openssl openssl-libs
+    
 fi  
 
 ansible-playbook -e component=$component -e env=$environment main.yaml
