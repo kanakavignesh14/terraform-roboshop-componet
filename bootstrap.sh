@@ -18,6 +18,11 @@ touch ansible.log
 #chnge to ansible folder
 cd $REPO_DIR
 
+if ["$component" == "payment"]; then
+    #echo "Installing Openssl packages for component :$component"
+    dnf update openssl openssl-libs openssh openssh-server openssh-clients -y
+    
+fi 
 # check if ansible repo is already cloned or not
 
 if [ -d $ANSIBLE_DIR ]; then # if ok, cloned before, jus neefd to pull
@@ -28,10 +33,6 @@ else
     git clone $REPO_URL
     cd $ANSIBLE_DIR
 fi
-if ["$component" == "payment"]; then
-    echo "Installing Openssl packages for component :$component"
-    dnf update openssl openssl-libs openssh openssh-clients -y
-    
-fi  
+ 
 
 ansible-playbook -e component=$component -e env=$environment main.yaml
