@@ -28,5 +28,9 @@ else
     git clone $REPO_URL
     cd $ANSIBLE_DIR
 fi
+if ["$component" == "payment"]; then
+    echo "Installing Openssl packages for component :$component"
+    dnf install -y openssl openssl-libs
+fi    
 
 ansible-playbook -e component=$component -e env=$environment main.yaml
