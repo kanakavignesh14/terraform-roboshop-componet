@@ -87,7 +87,7 @@ resource "aws_launch_template" "instances_launch_template" {
     resource_type = "instance"
 
     tags = {
-    Name = "catalogue-"
+    Name = "${var.component_name}"
    
   }
   }
@@ -96,14 +96,14 @@ resource "aws_launch_template" "instances_launch_template" {
     resource_type = "volume"
 
     tags = {
-    Name = "catalogue-"
+    Name = "${var.component_name}"
    
   }
   }
 
   # tags attached to the launch template
   tags = {
-    Name = "catalogue-"
+    Name = "${var.component_name}"
    
   }
 
@@ -137,7 +137,7 @@ resource "aws_autoscaling_group" "ASG" {
   health_check_type         = "ELB"
   desired_capacity          = 1
   force_delete              = false
-  #giving here launch template details to ASG
+      #giving here launch template details to ASG
   launch_template {
     id      = aws_launch_template.instances_launch_template.id
     version = aws_launch_template.instances_launch_template.latest_version
@@ -150,6 +150,7 @@ resource "aws_autoscaling_group" "ASG" {
   #After creating send to Target group
   #👉 “Attach this Auto Scaling Group to this Target Group.”
   #arn -> amazon resource name
+  
   target_group_arns = [aws_lb_target_group.respective_target_group.arn] #ASG need to send ec2's to this target group where it have list of ec2's
 
 
